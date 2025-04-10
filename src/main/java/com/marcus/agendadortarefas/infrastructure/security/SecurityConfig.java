@@ -17,40 +17,39 @@ public class SecurityConfig {
 
     // Instâncias de JwtUtil e UserDetailsService injetadas pelo Spring
     private final JwtUtil jwtUtil;
-    private final UserDetailsService userDetailsService;
+    private final UserDetailsServiceImpl userDetailsService;
 
     // Construtor para injeção de dependências de JwtUtil e UserDetailsService
     @Autowired
-    public SecurityConfig(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
+    public SecurityConfig(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
     }
 
     // Configuração do filtro de segurança
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // Cria uma instância do JwtRequestFilter com JwtUtil e UserDetailsService
-        JwtRequestFilter jwtRequestFilter = new JwtRequestFilter(jwtUtil, userDetailsService);
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+            // Cria uma instância do JwtRequestFilter com JwtUtil e UserDetailsService
+            JwtRequestFilter jwtRequestFilter = new JwtRequestFilter(jwtUtil, (UserDetailsService)userDetailsService);
 
-        http
-                .csrf(AbstractHttpConfigurer::disable) // Desativa proteção CSRF para APIs REST (não aplicável a APIs
-                                                       // que não mantêm estado)
-                .authorizeHttpRequests(authorize -> authorize
+            http
+                    .csrf(AbstractHttpConfigurer::disable) // Desativa proteção CSRF para APIs REST (não aplicável a APIs
+                                                           // que não mantêm estado)
+                    .authorizeHttpRequests(authorize -> authorize
 
-                        .anyRequest().authenticated() // Requer autenticação para todas as outras requisições
-                )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Configura a política de sessão como
-                                                                                // stateless (sem sessão)
-                )
-                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class); // Adiciona o filtro JWT
-                                                                                                // antes do filtro de
-                                                                                                // autenticação padrão
+                            .anyRequest().authenticated() // Requer autenticação para todas as outras requisições
+                    )
+                    .sessionManagement(session -> session
+                            .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Configura a política de sessão como
+                                                                                    // stateless (sem sessão)
+                    )
+                    .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class); // Adiciona o filtro JWT
+                                                                                                    // antes do filtro de
+                                                                                                    // autenticação padrão
 
-        // Retorna a configuração do filtro de segurança construída
-        return http.build();
-    }
-
+            // Retorna a configuração do filtro de segurança construída
+            return http.build();
+        }
    
 
 }
